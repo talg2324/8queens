@@ -89,7 +89,7 @@ def trimapify(im, im_name):
     
     plt.figure()
     plt.subplot(1,4,1)
-    plt.imshow(im)
+    plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
     plt.axis('off')
     plt.subplot(1,4,2)
     plt.imshow(foreground, cmap='hot')
