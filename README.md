@@ -1,5 +1,8 @@
 # 8queens
 Utilize computer vision techniques to visualize the solution to the classic bruteforcing problem
+<p align="center" width="100%">
+    <img width="50%" src="./samples/solution.gif"> 
+</p>
 
 N-Queens Solver:
 - Solve N-Queens by bruteforce
@@ -31,3 +34,5 @@ Visualization:
 <p align="center" width="100%">
     <img width="50%" src="./samples/board_alphamap.png"> 
 </p>
+
+3) Bruteforce!
