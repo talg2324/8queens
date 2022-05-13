@@ -77,6 +77,9 @@ class Solver():
 
 
     def __repr__(self) -> str:
+        """
+        Print a chess board using regular keys
+        """
 
         outstr = ''
 

@@ -21,12 +21,22 @@ def main():
             finalize_matting(im, trimap, im_name)
 
 def finalize_matting(im, trimap, im_name):
+    """
+    Use the refined trimap (alpha map) to remove background
+    """
     outpath = './images/%s_matted.jpg' %im_name
 
     im[trimap==0, :] = 0
     cv2.imwrite(outpath, im)
 
 def refine_trimap(trimap, path):
+    """
+    Segment the unknown region of the trimap
+    1) Take the largest connected component (removes all false positives) and find its centroid
+    2) Start at the farthest unknown point from the centroid and use the neighborhood to vote
+    3) Repeat until all unknown points receive a label (-1 or 1)
+    4) Zero the background to receive the final alpha map
+    """
     binary_im = np.zeros(trimap.shape, dtype=np.uint8)
     binary_im[trimap>0] = 255
     nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(binary_im, connectivity=8)
@@ -57,6 +67,14 @@ def refine_trimap(trimap, path):
     return trimap
 
 def trimapify(im, im_name):
+    """
+    Create a trimap using scribbles
+
+    1) Create a simple Gaussian distribution for each scribble (no need for E/M since we already have the scribbles)
+    2) Find the Normalized Mahalanobis distance from each pixel to each of the two scribbles
+    3) Run the Djikstra Algorithm to propogate distance from the scribbles to each pixel
+    4) Take the segmentation where one model dominates the other.  Leave unknown pixels if the models have similar distance.    
+    """
     foreground, background = initial_segmentation(im)
 
     # Probability map
@@ -90,6 +108,11 @@ def trimapify(im, im_name):
     return trimap
 
 def initial_segmentation(im):
+    """
+    Get scribbles.
+    Foreground Scribble - Use a basic threshold
+    Background Scribble - Assume the background is the bottom 50 pixels of the image
+    """
     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     foreground = np.zeros_like(im_gray)
     foreground[im_gray < 100] = 255
@@ -98,7 +121,11 @@ def initial_segmentation(im):
     return foreground, background
 
 def calc_distance_map(mask, probabilities):
-
+    """
+    Initialize the Djikstra Information Propagation Algorithm
+    Each scribble is 0 distance from its correct segmentation
+    Propagate distance to all pixels
+    """
     # Init
     start_y, start_x = np.where(mask==255)
     distance_map = np.zeros_like(probabilities) + 1e6
@@ -110,6 +137,10 @@ def calc_distance_map(mask, probabilities):
     return np.log(distance_map + 1e-7)
 
 def djikstra(queue, visited, distance_map, probabilities, shape):
+    """
+    Djikstra Information Propagation Algorithm
+    Follow the gradient of log-probabilities to assess the distance from a scribble to a pixel
+    """
     
     maxy = shape[0]-2
     maxx = shape[1]-2
@@ -175,12 +206,12 @@ def fast_prob_estimate(mu, cov_inv, inp, foreground, background, shape):
 
             pixel = inp[i,j, :]
 
-            # Foreground
+            # Foreground log-Probability
             d = mu[0, :] - pixel
             mahalanobis = d @ cov_inv[0, ...] @ d.T
             foreground[i,j] = mahalanobis
 
-            # Background
+            # Background log-Probability
             d = mu[1, :] - pixel
             mahalanobis = d @ cov_inv[1, ...] @ d.T
             background[i,j] = mahalanobis
