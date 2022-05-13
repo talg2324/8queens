@@ -10,3 +10,24 @@ Visualization:
 - Use the Djikstra algorithm to propagate scribble information into a trimap
 - Trimap Refinement
 - Create a homography mapping the "digital" queen placement onto the chessboard
+
+1) Trimap Generation
+
+
+<p align='center'>Input Image -> Foreground Probability Map -> Foreground Distance Map -> Final Trimap (Foreground + Background)</p>
+<p align="center" width="100%">
+    <img width="50%" src="./samples/queen_matting.png"> 
+</p>
+
+<p align="center" width="100%">
+    <img width="50%" src="./samples/board_matting.png"> 
+</p>
+
+2) Trimap Refinement
+<p align="center" width="100%">
+    <img width="50%" src="./samples/queen_alphamap.png"> 
+</p>
+
+<p align="center" width="100%">
+    <img width="50%" src="./samples/board_alphamap.png"> 
+</p>
